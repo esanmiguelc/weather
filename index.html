@@ -8684,24 +8684,30 @@ var _user$project$Main$view = function (model) {
 		{
 			ctor: '::',
 			_0: _user$project$Main$someStuff(model),
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$p,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(model.weather),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
 		});
-};
-var _user$project$Main$toCelsius = function (result) {
-	return _elm_lang$core$Basics$round(result - 273.13);
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		if (_p0._0.ctor === 'Ok') {
+			var _p1 = _p0._0._0;
 			return {
 				ctor: '_Tuple2',
 				_0: _elm_lang$core$Native_Utils.update(
 					model,
-					{
-						temp: _user$project$Main$toCelsius(_p0._0._0),
-						weatherFetched: true
-					}),
+					{temp: _p1.temp, weatherFetched: true, weather: _p1.weather}),
 				_1: _elm_lang$core$Platform_Cmd$none
 			};
 		} else {
@@ -8711,19 +8717,6 @@ var _user$project$Main$update = F2(
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$decodeData = A2(
-	_elm_lang$core$Json_Decode$at,
-	{
-		ctor: '::',
-		_0: 'main',
-		_1: {
-			ctor: '::',
-			_0: 'temp',
-			_1: {ctor: '[]'}
-		}
-	},
-	_elm_lang$core$Json_Decode$float);
-var _user$project$Main$getRequest = A2(_elm_lang$http$Http$get, 'http://api.openweathermap.org/data/2.5/weather?q=santo+domingo&appid=2f0a5e81e7e8502ed4f1b057d7702480', _user$project$Main$decodeData);
 var _user$project$Main$Model = F3(
 	function (a, b, c) {
 		return {temp: a, weather: b, weatherFetched: c};
@@ -8732,6 +8725,34 @@ var _user$project$Main$WeatherStatus = F2(
 	function (a, b) {
 		return {weather: a, temp: b};
 	});
+var _user$project$Main$decodeData = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_user$project$Main$WeatherStatus,
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'current_observation',
+			_1: {
+				ctor: '::',
+				_0: 'weather',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$string),
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'current_observation',
+			_1: {
+				ctor: '::',
+				_0: 'temp_c',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$int));
+var _user$project$Main$getRequest = A2(_elm_lang$http$Http$get, 'https://api.wunderground.com/api/d4088af231ef0ab0/conditions/q/DO/Santo_Domingo.json', _user$project$Main$decodeData);
 var _user$project$Main$WeatherUpdate = function (a) {
 	return {ctor: 'WeatherUpdate', _0: a};
 };
