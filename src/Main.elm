@@ -12,19 +12,21 @@ type alias Model =
 
 type alias WeatherStatus =
   { weather : String
-  , temp : Float
+  , temp : Int
   }
 
 type Msg =
-  WeatherUpdate (Result Http.Error Float)
+  WeatherUpdate (Result Http.Error WeatherStatus)
 
-decodeData : Decode.Decoder Float
+decodeData : Decode.Decoder WeatherStatus
 decodeData =
-  (Decode.at ["main", "temp"] Decode.float)
+  Decode.map2 WeatherStatus
+    (Decode.at ["current_observation", "weather"] Decode.string)
+    (Decode.at ["current_observation", "temp_c"] Decode.int)
 
-getRequest : Http.Request Float
+getRequest : Http.Request WeatherStatus
 getRequest =
-  Http.get "http://api.openweathermap.org/data/2.5/weather?q=santo+domingo&appid=2f0a5e81e7e8502ed4f1b057d7702480" decodeData
+  Http.get "https://api.wunderground.com/api/d4088af231ef0ab0/conditions/q/DO/Santo_Domingo.json" decodeData
 
 getCurrentWeather : Cmd Msg
 getCurrentWeather =
@@ -38,15 +40,12 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-toCelsius : Float -> Int
-toCelsius result =
-  (round (result - 273.13))
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     WeatherUpdate (Ok result) ->
-      ( { model | temp = (toCelsius result), weatherFetched = True }, Cmd.none )
+      ( { model | temp = result.temp, weatherFetched = True, weather = result.weather }, Cmd.none )
 
     WeatherUpdate (Err result) ->
       ( model, Cmd.none )
@@ -60,7 +59,8 @@ someStuff model =
 
 view : Model -> Html Msg
 view model =
-  div [] [someStuff model]
+  div [] [ someStuff model
+  , p [] [ text model.weather] ]
 
 main =
   Html.program { init = init, subscriptions = subscriptions, update = update, view = view }
